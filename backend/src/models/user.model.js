@@ -1,14 +1,14 @@
-import mongoose, {Schema } from "mongoose"
+import mongoose, { Schema } from "mongoose";
 
-
-const meetingSchema = new Schema(
+const userScheme = new Schema(
     {
-        user_id: { type: String},
-        meetingCode: { type: String, required: true},
-        date: { type: Date, default: Date.now, requires: true}
+        name: { type: String, required: true },
+        username: { type: String, required: true, unique: true },
+        password: { type: String, required: true },
+        token: { type: String }
     }
 )
 
-const Meeting = mongoose.model("Meeting",meetingSchema);
+const User = mongoose.model("User", userScheme);
 
-export { Meeting };
+export { User };
