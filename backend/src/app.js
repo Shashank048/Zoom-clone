@@ -4,15 +4,16 @@ import { createServer } from "node:http";
 import mongoose from "mongoose";
 
 import { Server } from 'socket.io';
+import cors from "cors";
 
-app.use(cors({
-  origin: "https://zoom-clone-red-tau.vercel.app", // frontend URL
-  methods: ["GET", "POST", "OPTIONS"],
-  credentials: true
-}));
+//app.use(cors({
+//  origin: "https://zoom-clone-red-tau.vercel.app", // frontend URL
+//  methods: ["GET", "POST", "OPTIONS"],
+//  credentials: true
+//}));
 
 // Enable preflight (OPTIONS) for all routes
-app.options("*", cors());
+//app.options("*", cors());
 
 //import cors from "cors";
 import userRoutes from "./routes/users.routes.js";
