@@ -392,7 +392,7 @@ export default function VideoMeetComponent() {
     }
 
     useEffect(() => {
-        if (screen !== undefined) {
+        if (screen === true) {
             getDislayMedia();
         }
     }, [screen])
