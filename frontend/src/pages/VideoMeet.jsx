@@ -14,6 +14,7 @@ import ChatIcon from '@mui/icons-material/Chat'
 import server from '../environment';
 
 const server_url = server;
+let localVideoref = useRef();
 
 var connections = {};
 
@@ -34,9 +35,12 @@ export default function VideoMeetComponent() {
 
     let [audioAvailable, setAudioAvailable] = useState(true);
 
-    let [video, setVideo] = useState([]);
+  //  let [video, setVideo] = useState([]);
 
-    let [audio, setAudio] = useState();
+  //  let [audio, setAudio] = useState();
+    const [video, setVideo] = useState(true);
+    const [audio, setAudio] = useState(true);
+
 
     let [screen, setScreen] = useState();
 
@@ -67,8 +71,7 @@ export default function VideoMeetComponent() {
     useEffect(() => {
         console.log("HELLO")
         getPermissions();
-
-    })
+    },[])
 
     let getDislayMedia = () => {
         if (screen) {
