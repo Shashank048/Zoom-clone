@@ -18,6 +18,9 @@ const server_url = server;
 
 var connections = {};
 
+const localVideoRef = useRef(null);
+
+
 const peerConfigConnections = {
   "iceServers": [{ "urls": "stun:stun.l.google.com:19302" }]
 };
