@@ -524,7 +524,7 @@ export default function VideoMeetComponent() {
           <video className={styles.meetUserVideo} ref={localVideoRef} autoPlay muted></video>
           <div className={styles.conferenceView}>
            {videos.map((video) => (
-              <div key={video.socketId}>
+              <div key={video.socketId} className={styles.remoteVideoContainer}>
                 <video
 
                   data-socket={video.socketId}
@@ -536,6 +536,11 @@ export default function VideoMeetComponent() {
                   autoPlay
                 >
               </video>
+                 className={styles.localVideoOverlay}
+                ref={localVideoRef}
+               autoPlay
+               muted
+                />
             </div>
             ))}
           </div>
