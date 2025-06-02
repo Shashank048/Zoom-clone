@@ -425,7 +425,7 @@ export default function VideoMeetComponent() {
     if (screen !== undefined){
       getDisplayMedia();
     } 
-  })
+  },[screen]);
 
   let handleScreen = () =>{
     setScreen(!screen)
