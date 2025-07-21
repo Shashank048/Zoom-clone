@@ -1,58 +1,98 @@
-.meetVideoContainer{
-    position: relative;
-    height: 100vh;
-    background: rgb(1, 4, 48);
+/* Main layout container */
+.meetLayout {
+  display: flex;
+  height: 100vh;
+  background-color: rgb(1, 4, 48);
+  overflow: hidden;
 }
 
-.meetUserVideo{
-    position: absolute;
-    bottom: 10vh;
-    height: 20vh;
-    width: auto;
-    left: 0;
-    border-radius: 20px;
+/* Left side: Video section (70%) */
+.videoArea {
+  flex: 7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 10px;
 }
 
-.buttonContainers{
-    position: absolute;
-    width: 100vw;
-    bottom: 0;
-    text-align: center;
+/* Container for all video content (local + remote) */
+.mainVideoWrapper {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+/* Local video: small preview when someone else joins */
+.meetUserVideo {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  height: 20vh;
+  border-radius: 10px;
+  z-index: 10;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
+}
+
+/* Local video: fullscreen when alone */
+.fullscreenVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+/* Remote video: occupies entire area when present */
+.conferenceView {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.remoteVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+/* Controls */
+.buttonContainers {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  text-align: center;
+  z-index: 20;
 }
 
 .buttonContainers svg {
-    font-size: 2rem;
+  font-size: 2rem;
 }
 
-.conferenceView{
-    display: flex;
-    padding: 10px;
-    gap: 10px;
+/* Right side: Chat section (30%) */
+.chatRoom {
+  flex: 3;
+  background: white;
+  height: 100vh;
+  padding: 20px;
+  overflow-y: auto;
+  border-radius: 10px 0 0 10px;
 }
 
-.conferenceView > video{
-    width: 40vw;
-    height: 20vh;
-    min-width: 30vw;
-    border-radius: 10px;
+.chatContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
-.chatRoom{
-    position: absolute;
-    height: 90vh;
-    right: 0;
-    background: white;
-    border-radius: 10px;
-    width: 30vw;
-    padding-inline: 20px;
+.chattingDisplay {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 10px;
 }
 
-.chatContainer{
-    position: relative;
-    height: 100%;
-}
-
-.chattingArea{
-    position: absolute;
-    bottom: 0;
+.chattingArea {
+  display: flex;
+  gap: 10px;
+  align-items: center;
 }
