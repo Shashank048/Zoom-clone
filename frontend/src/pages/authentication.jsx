@@ -174,5 +174,3 @@ export default function Authentication() {
         </ThemeProvider>
     );
 }
-
-// backgroundImage: 'url(https://source.unsplash.com/random?wallpapers)',
