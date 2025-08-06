@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+   import React, { useEffect, useRef, useState } from 'react'
 import io from "socket.io-client";
 import { Badge, IconButton, TextField } from '@mui/material';
 import { Button } from '@mui/material';
@@ -58,6 +58,9 @@ export default function VideoMeetComponent() {
 
     let [videos, setVideos] = useState([])
 
+    const localStream = useRef(null);
+
+
     useEffect(() => {
         getPermissions();
     }, [])
@@ -73,41 +76,75 @@ export default function VideoMeetComponent() {
         }
     }
 
-    const getPermissions = async () => {
-        try {
-            const videoPermission = await navigator.mediaDevices.getUserMedia({ video: true });
-            if (videoPermission) {
-                setVideoAvailable(true);
-            } else {
-                setVideoAvailable(false);
-            }
+   
 
-            const audioPermission = await navigator.mediaDevices.getUserMedia({ audio: true });
-            if (audioPermission) {
-                setAudioAvailable(true);
-            } else {
-                setAudioAvailable(false);
-            }
 
-            if (navigator.mediaDevices.getDisplayMedia) {
-                setScreenAvailable(true);
-            } else {
-                setScreenAvailable(false);
-            }
 
-            if (videoAvailable || audioAvailable) {
-                const userMediaStream = await navigator.mediaDevices.getUserMedia({ video: videoAvailable, audio: audioAvailable });
-                if (userMediaStream) {
-                    window.localStream = userMediaStream;
-                    if (localVideoref.current && localVideoref.current.srcObject !== userMediaStream) {
-                        localVideoref.current.srcObject = userMediaStream;
-                    }
-                }
-            }
-        } catch (error) {
-            console.log(error);
+ //   const getPermissions = async () => {
+ //       try {
+  //          const videoPermission = await navigator.mediaDevices.getUserMedia({ video: true });
+  //          if (videoPermission) {
+  //              setVideoAvailable(true);
+  //          } else {
+  //              setVideoAvailable(false);
+   //         }
+//
+    //        const audioPermission = await navigator.mediaDevices.getUserMedia({ audio: true });
+   //         if (audioPermission) {
+   //             setAudioAvailable(true);
+   //         } else {
+    //            setAudioAvailable(false);
+    //        }
+//
+     //       if (navigator.mediaDevices.getDisplayMedia) {
+     //           setScreenAvailable(true);
+    ///        } else {
+    //            setScreenAvailable(false);
+   //         }
+
+     //       if (videoAvailable || audioAvailable) {
+     //           const userMediaStream = await navigator.mediaDevices.getUserMedia({ video: videoAvailable, audio: audioAvailable });
+    //            if (userMediaStream) {
+      //              window.localStream = userMediaStream;
+      //              if (localVideoref.current && localVideoref.current.srcObject !== userMediaStream) {
+     //                   localVideoref.current.srcObject = userMediaStream;
+      //              }
+     //           }
+    //        }
+   //     } catch (error) {
+   //         console.log(error);
+    //    }
+ //   };
+
+
+
+ const getPermissions = async () => {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: true,
+        });
+
+        const hasVideo = stream.getVideoTracks().length > 0;
+        const hasAudio = stream.getAudioTracks().length > 0;
+
+        setVideoAvailable(hasVideo);
+        setAudioAvailable(hasAudio);
+        setScreenAvailable(!!navigator.mediaDevices.getDisplayMedia);
+
+        window.localStream = stream;
+
+        if (localVideoref.current && localVideoref.current.srcObject !== stream) {
+            localVideoref.current.srcObject = stream;
         }
-    };
+    } catch (error) {
+        console.error("Permission error:", error);
+        setVideoAvailable(false);
+        setAudioAvailable(false);
+        setScreenAvailable(!!navigator.mediaDevices.getDisplayMedia);
+    }
+};
+
 
     useEffect(() => {
         if (video !== undefined && audio !== undefined) {
@@ -369,10 +406,43 @@ export default function VideoMeetComponent() {
         setVideo(!video);
         // getUserMedia();
     }
-    let handleAudio = () => {
-        setAudio(!audio)
+//    let handleAudio = () => {
+//        setAudio(!audio)
         // getUserMedia();
-    }
+//    }
+
+ // let handleAudio = () => {
+ // if (window.localStream) {
+ //  window.localStream.getAudioTracks().forEach(track => {
+ //     track.enabled = !track.enabled;
+  //   setAudio(track.enabled);  // Track actual state
+   // });
+  //}
+//};
+
+let handleAudio = () => {
+  if (window.localStream) {
+    const audioTracks = window.localStream.getAudioTracks();
+    audioTracks.forEach(track => {
+      const newState = !track.enabled;
+      track.enabled = newState;
+      setAudio(newState);
+
+      // Re-add track to all peer connections
+      for (let id in connections) {
+        const sender = connections[id]
+          .getSenders()
+          .find(s => s.track && s.track.kind === "audio");
+        if (sender) {
+          sender.replaceTrack(track).catch(e => console.log("Replace track error:", e));
+        }
+      }
+    });
+  }
+};
+
+
+
 
     useEffect(() => {
         if (screen !== undefined) {
@@ -391,6 +461,11 @@ export default function VideoMeetComponent() {
         window.location.href = "/"
     }
 
+
+
+   
+
+
     let openChat = () => {
         setModal(true);
         setNewMessages(0);
@@ -402,31 +477,87 @@ export default function VideoMeetComponent() {
         setMessage(e.target.value);
     }
 
-    const addMessage = (data, sender, socketIdSender) => {
-        setMessages((prevMessages) => [
-            ...prevMessages,
-            { sender: sender, data: data }
-        ]);
-        if (socketIdSender !== socketIdRef.current) {
-            setNewMessages((prevNewMessages) => prevNewMessages + 1);
-        }
-    };
+ //   const addMessage = (data, sender, socketIdSender) => {
+ //       setMessages((prevMessages) => [
+ //           ...prevMessages,
+ //          { sender: sender, data: data }
+ //       ]);
+ //       if (socketIdSender !== socketIdRef.current) {
+ ///           setNewMessages((prevNewMessages) => prevNewMessages + 1);
+  //      }
+  //  };
+
+const addMessage = (incomingMessage) => {
+  // ✅ Prevent showing your own message twice
+  if (incomingMessage.senderId === socketRef.current.id) return;
+
+  setMessages((prev) => [...prev, incomingMessage]);
+};
+
+ 
 
 
 
-    let sendMessage = () => {
-        console.log(socketRef.current);
-        socketRef.current.emit('chat-message', message, username)
-        setMessage("");
+  //  let sendMessage = () => {
+  //      console.log(socketRef.current);
+ //       socketRef.current.emit('chat-message', message, username)
+  //      setMessage("");
 
-        // this.setState({ message: "", sender: username })
-    }
+   //     // this.setState({ message: "", sender: username })
+  //  }
+
+
+
+
+
+let sendMessage = () => {
+  if (!message.trim()) return;
+
+  const timestamp = new Date().toLocaleString();
+
+  const chatPayload = {
+    id: Date.now(),
+    sender: username ,
+    data: message,
+    timestamp: timestamp,
+    senderId: socketRef.current.id, 
+  };
+
+  socketRef.current.emit("chat-message", chatPayload);
+
+  // ✅ Show the message instantly
+  setMessages((prevMessages) => [...prevMessages, chatPayload]);
+
+  setMessage("");
+};
+
 
     
-    let connect = () => {
-        setAskForUsername(false);
-        getMedia();
-    }
+  //  let connect = () => {
+  //      setAskForUsername(false);
+ //       
+ //       getMedia();
+ //   }
+
+ let connect = () => {
+  setAskForUsername(false);
+
+    setMessages([]);
+
+
+
+  const welcomeMessage = {
+    id: Date.now(),
+    sender: "System",
+    data: `${username || "You"} joined the chat.`,
+    timestamp: new Date().toLocaleString(),
+  };
+
+  setMessages((prev) => [...prev, welcomeMessage]);
+
+  getMedia();
+};
+
 
      return (
   <div>
@@ -496,11 +627,12 @@ export default function VideoMeetComponent() {
                   {screen ? <ScreenShareIcon /> : <StopScreenShareIcon />}
                 </IconButton>
               )}
-              <Badge badgeContent={newMessages} max={999} color="orange">
-                <IconButton onClick={() => setModal(!showModal)} style={{ color: "white" }}>
-                  <ChatIcon />
-                </IconButton>
-              </Badge>
+             <Badge badgeContent={showModal ? 0 : newMessages} max={999} color="orange">
+  <IconButton onClick={() => setModal(!showModal)} style={{ color: "white" }}>
+    <ChatIcon />
+  </IconButton>
+</Badge>
+
             </div>
           </div>
         </div>
@@ -512,10 +644,21 @@ export default function VideoMeetComponent() {
             <div className={styles.chattingDisplay}>
               {messages.length !== 0 ? (
                 messages.map((item, index) => (
-                  <div style={{ marginBottom: "20px" }} key={index}>
-                    <p style={{ fontWeight: "bold" }}>{item.sender}</p>
-                    <p>{item.data}</p>
-                  </div>
+                  <div
+      key={item.id}
+      style={{
+        marginBottom: "20px",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center"
+      }}
+    >
+      <div>
+        <p style={{ fontWeight: "bold" }}>{item.sender}</p>
+        <p>{item.data}</p>
+        <p style={{ fontSize: "0.8rem", color: "gray" }}>{item.timestamp}</p>
+      </div>
+    </div>
                 ))
               ) : (
                 <p>No Messages Yet</p>
@@ -541,5 +684,3 @@ export default function VideoMeetComponent() {
 
 
 }
-
-//<video className={styles.meetUserVideo} ref={localVideoref} autoPlay muted></video>   
